@@ -2,9 +2,9 @@
  * @file universal-fs/tests/utils.ts
  */
 export const IMPORT_ROOT = "../dist";
-
-export const PKG_JSON_PATH = "./package.json";
-export const LOCAL_TEXT_PATH = "./project-tree.txt";
+const suffix = "";
+export const PKG_JSON_PATH = `./${suffix}package.json`;
+export const LOCAL_TEXT_PATH = `./${suffix}project-tree.txt`;
 /**
  * ```
  * /Unsupported format: .+, Supported:/i;
