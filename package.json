@@ -1,0 +1,59 @@
+{
+  "name": "@jeffy-g/universal-fs",
+  "version": "0.1.0",
+  "description": "Universal file system utils for Node.js and Browser in TypeScript.",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=15.7.0"
+  },
+  "author": "jeffy-g <hirotom1107@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeffy-g/universal-fs.git"
+  },
+  "keywords": [
+    "fs",
+    "io",
+    "esm",
+    "blob",
+    "json",
+    "node",
+    "text",
+    "fetch",
+    "browser",
+    "file-api",
+    "portable",
+    "readFile",
+    "universal",
+    "writeFile",
+    "typescript",
+    "filesystem",
+    "arraybuffer",
+    "file-system",
+    "universal-fs",
+    "bun-compatible",
+    "cross-platform",
+    "deno-compatible"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "test:bw-preview": "vitest --config vitest.preview.config.ts"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,212 @@
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node', // Default to node environment
+    include: ['tests/**/*.test.ts'],
+    exclude: ['node_modules', 'dist'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'json'],
+      exclude: [
+        'node_modules/**',
+        'tests/**',
+        'dist/**',
+        '**/*.d.ts',
+        '**/*.config.*'
+      ]
+    },
+    // Environment-specific configurations
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
+  },
+  esbuild: {
+    target: 'es2020'
+  }
+});
+
+// vitest.config.browser.ts
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'happy-dom', // Use happy-dom for browser environment simulation
+    include: ['tests/browser.test.ts'],
+    exclude: ['node_modules', 'dist'],
+    setupFiles: ['./tests/setup/browser-setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'json'],
+      exclude: [
+        'node_modules/**',
+        'tests/**',
+        'dist/**',
+        '**/*.d.ts',
+        '**/*.config.*'
+      ]
+    },
+    // Browser-specific test configuration
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true // Browser tests might need single thread
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
+  },
+  esbuild: {
+    target: 'es2020'
+  }
+});
+
+// vitest.config.node.ts
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['tests/node.test.ts'],
+    exclude: ['node_modules', 'dist'],
+    setupFiles: ['./tests/setup/node-setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'json'],
+      exclude: [
+        'node_modules/**',
+        'tests/**',
+        'dist/**',
+        '**/*.d.ts',
+        '**/*.config.*'
+      ]
+    },
+    // Node-specific test configuration
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
+  },
+  esbuild: {
+    target: 'node16'
+  }
+});
+
+// tests/setup/browser-setup.ts
+import { vi } from 'vitest';
+
+// Mock browser globals
+Object.defineProperty(globalThis, 'window', {
+  value: {
+    document: {},
+    URL: {
+      createObjectURL: vi.fn(() => 'blob:mock-url'),
+      revokeObjectURL: vi.fn()
+    },
+    location: {
+      href: 'https://localhost:3000'
+    }
+  },
+  writable: true
+});
+
+Object.defineProperty(globalThis, 'document', {
+  value: {
+    createElement: vi.fn(() => ({
+      href: '',
+      download: '',
+      click: vi.fn(),
+      style: { display: '' }
+    })),
+    body: {
+      appendChild: vi.fn(),
+      removeChild: vi.fn()
+    }
+  },
+  writable: true
+});
+
+// Mock fetch globally for browser tests
+global.fetch = vi.fn();
+
+// Mock File and Blob if not available
+if (!globalThis.File) {
+  globalThis.File = class MockFile extends Blob {
+    name: string;
+    lastModified: number;
+    webkitRelativePath: string;
+
+    constructor(parts: BlobPart[], filename: string, options?: FilePropertyBag) {
+      super(parts, options);
+      this.name = filename;
+      this.lastModified = options?.lastModified || Date.now();
+      this.webkitRelativePath = '';
+    }
+  } as any;
+}
+
+// tests/setup/node-setup.ts
+import { vi } from 'vitest';
+
+// Mock Node.js specific globals if needed
+if (!global.process) {
+  global.process = {
+    versions: { node: '16.0.0' },
+    env: { NODE_ENV: 'test' }
+  } as any;
+}
+
+// Ensure window is undefined in Node.js tests
+if (typeof window !== 'undefined') {
+  delete (globalThis as any).window;
+}
+
+// Ensure document is undefined in Node.js tests
+if (typeof document !== 'undefined') {
+  delete (globalThis as any).document;
+}
+
+// package.json scripts section (add these to your package.json)
+/*
+{
+  "scripts": {
+    "test": "vitest",
+    "test:node": "vitest --config vitest.config.node.ts",
+    "test:browser": "vitest --config vitest.config.browser.ts",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "happy-dom": "^12.0.0",
+    "@vitest/ui": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0"
+  }
+}
+*/
