@@ -107,11 +107,11 @@ export type InferBaseType<
   : Type extends Cache
     ? Type
     : TUFSData;
-export type TUFSReadFileFunctionSig<
-  Type extends UWrap<TUFSData> = undefined,
-  OptBase extends TUFSOptions = TUFSOptions,
+export type TUFSReadFileSig<
+  Type extends UWrap<TUFSData> = string,
+  OptBase extends TUFSOptNoFormat = TUFSOptNoFormat,
 > = <
-  Input extends TUFSInputType = string,
+  Input extends TUFSInputType = TUFSInputType,
   Opt extends OptBase = OptBase,
   Ret = Opt extends {
     useDetails: true;
@@ -122,8 +122,6 @@ export type TUFSReadFileFunctionSig<
   filename: Input,
   options?: Opt,
 ) => Promise<Ret>;
-export type TUFSReadFileSig<Type extends TUFSData = string> =
-  TUFSReadFileFunctionSig<Type, TUFSOptNoFormat>;
 export type TUFSWriteFileSig<T extends BlobPart> = <
   Opt extends TUFSOptions,
   R extends Opt extends {
@@ -196,7 +194,7 @@ export interface IUniversalFs extends IInternalFs {
       ? TUFSResult<T>
       : T,
   >(
-    filename: string,
+    filename: TUFSInputType,
     options?: Opt,
   ): Promise<Ret>;
   /**

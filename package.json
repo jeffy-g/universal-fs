@@ -1,6 +1,6 @@
 {
   "name": "@jeffy-g/universal-fs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Universal file system utils for Node.js and Browser in TypeScript.",
   "sideEffects": false,
   "type": "module",

@@ -40,7 +40,7 @@ describe('Universal FS - Node.js Environment', () => {
 
   describe('Basic Properties', () => {
     it('should have version property', () => {
-      expect(ufs.version).toBe('v0.1.0');
+      expect(ufs.version).toBe('v0.1.1');
     });
 
     it('should expose all required methods', () => {
@@ -207,7 +207,7 @@ describe('Universal FS - Node.js Environment', () => {
       await ufs.writeFile(testFiles.json, JSON.stringify(testData));
       const textResult = await ufs.readFile(testFiles.json, { format: 'text' });
       expect(typeof textResult).toBe('string');
-      const jsonResult = await ufs.readFile(testFiles.json, { format: 'json' });
+      const jsonResult = await ufs.readJSON(testFiles.json);
       expect(jsonResult).toEqual(testData);
       const bufferResult = await ufs.readFile(testFiles.json, { format: 'arrayBuffer' });
       expect(bufferResult).toBeInstanceOf(ArrayBuffer);

@@ -100,7 +100,7 @@ describe('Universal FS - Integration Tests', () => {
       );
 
       // Type should be inferred as TestConfig
-      const config = await ufs.readFile<TestConfig>(mockFile, { format: "json" });
+      const config = await ufs.readJSON<TestConfig>(mockFile);
       // TypeScript should allow these operations without type assertion
       expect(typeof config.name).toBe('string');
       expect(Array.isArray(config.features)).toBe(true);
@@ -125,7 +125,7 @@ describe('Universal FS - Integration Tests', () => {
         { type: 'application/json' }
       );
 
-      const result = await ufs.readFile<FlexibleConfig>(mockFile, { format: "json" });
+      const result = await ufs.readJSON<FlexibleConfig>(mockFile);
       expect(result.name).toBe('flexible-test');
       expect(result.port).toBe(3000);
       expect(result.debug).toBe(true);
@@ -197,7 +197,7 @@ describe('Universal FS - Integration Tests', () => {
 
       const [textResult, jsonResult, binaryResult] = await Promise.all([
         ufs.readText(textFile),
-        ufs.readFile(jsonFile, { format: "json" }),
+        ufs.readJSON(jsonFile),
         ufs.readBuffer(binaryFile)
       ]);
 
@@ -226,7 +226,7 @@ describe('Universal FS - Integration Tests', () => {
 
       const jsonContent = JSON.stringify(largeObject);
       const largeFile = new File([jsonContent], 'large.json', { type: 'application/json' });
-      const result = await ufs.readFile(largeFile, { format: "json" });
+      const result = await ufs.readJSON(largeFile);
 
       expect(result).toHaveProperty('metadata');
       expect(result).toHaveProperty('data');
@@ -277,7 +277,7 @@ describe('Universal FS - Integration Tests', () => {
       const testData = { unicode: 'filename test' };
       const file = new File([JSON.stringify(testData)], unicodeFilename, { type: 'application/json' });
 
-      const result = await ufs.readFile(file, { format: "json" }); // readJSON
+      const result = await ufs.readJSON(file);
       expect(result).toEqual(testData);
     });
 
@@ -298,7 +298,7 @@ describe('Universal FS - Integration Tests', () => {
       }
 
       const file = new File([JSON.stringify(deepObject)], 'deep.json', { type: 'application/json' });
-      const result = await ufs.readFile(file, { format: "json" }); // readJSON
+      const result = await ufs.readJSON(file);
 
       // Navigate to the deep value
       let current = result as any;

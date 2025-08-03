@@ -57,7 +57,7 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.1.0",
+    version: "v0.1.1",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
@@ -108,7 +108,6 @@ export const ufs = (() => {
      * @param [options] Optional settings for encoding, etc.
      * @returns Promise of universal file operation result.
      */
-    // readJSON: TUFSReadFileSignature<IUFSFormatMap["json"]>;
     // readJSON: async (filename: string, options) => {
     async readJSON(filename, options) {
       return _getNRead(filename, "json", options);

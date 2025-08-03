@@ -87,7 +87,7 @@ describe('Universal FS - Browser Environment', () => {
 
   describe('Basic Properties', () => {
     it('should have version property', () => {
-      expect(ufs.version).toBe('v0.1.0');
+      expect(ufs.version).toBe('v0.1.1');
     });
 
     it('should expose all required methods', () => {
@@ -269,7 +269,8 @@ describe('Universal FS - Browser Environment', () => {
       expect(result).toHaveProperty('data', testContent);
       expect(result).toHaveProperty('filename', 'details.txt');
       expect(result).toHaveProperty('strategy', 'browser');
-      expect(result).toHaveProperty('url', 'https://example.com/details.txt');
+      // can not set url to Response instance, https://example.com/details.txt
+      expect(result).toHaveProperty('url', '');
       expect(result).toHaveProperty('mimeType', 'text/plain');
     });
   });
