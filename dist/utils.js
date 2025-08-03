@@ -182,7 +182,7 @@ const VALID_FORMATS = ["text", "json", "blob", "binary", "arrayBuffer"];
  * `Unsupported input type`
  * ```
  */
-export const MSG_UNSUPPORTED_INPUT = `Unsupported input type`;
+export const MSG_UNSUPPORTED_INPUT = "Unsupported input type";
 /**
  * Validates whether the given format string is a supported file format.
  *
@@ -202,13 +202,12 @@ export const MSG_UNSUPPORTED_INPUT = `Unsupported input type`;
  * ```
  */
 export const isValidFormat = (format) => {
-  const ret = VALID_FORMATS.includes(format);
-  if (!ret) {
+  if (!VALID_FORMATS.includes(format)) {
     throw new TypeError(
       `[ufs] Unsupported format: "${format}", Supported: ${VALID_FORMATS.join(", ")}`,
     );
   }
-  return ret;
+  return true;
 };
 /**
  * Decides the format based on the options provided.

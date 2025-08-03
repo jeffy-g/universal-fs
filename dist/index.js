@@ -57,7 +57,8 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.1.1",
+    version: "v0.1.2",
+    env: isNode ? "node" : isBrowser ? "browser" : "unknown",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -

@@ -81,6 +81,7 @@ export type TUFSResult<T extends UWrap<TUFSData> = undefined> = {
   url?: string;
   mimeType?: TMimeType;
 } & WithData<T>;
+export type TUFSEnvironment = "node" | "browser" | "unknown";
 export type UWrap<T> = T | undefined;
 export type PickUFSDataType<Opt extends UWrap<TUFSOptions>> = [Opt] extends [
   undefined,
@@ -178,6 +179,7 @@ export declare interface IInternalFs {
  */
 export interface IUniversalFs extends IInternalFs {
   version: string;
+  env: TUFSEnvironment;
   /**
    * Reads a file as plain text.
    */
