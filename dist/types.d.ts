@@ -16,6 +16,7 @@ export declare const isNode: boolean;
  * Detects whether the current environment is a browser.
  */
 export declare const isBrowser: boolean;
+export declare const isWorker: boolean;
 /**
  * Represents a standard MIME type as a string literal.
  * E.g., "application/json", "text/plain"

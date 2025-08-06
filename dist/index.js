@@ -8,7 +8,7 @@
 /**
  * @file universal-fs/src/index.ts
  */
-import { isNode, isBrowser } from "./types.js";
+import { isNode, isBrowser, isWorker } from "./types.js";
 import { UniversalFsError } from "./utils.js";
 /**
  * @import {
@@ -30,7 +30,7 @@ export const ufs = (() => {
       // _fs = await import("./browser-fs.js");
       if (isNode) {
         _fs = await import("./node-fs.js");
-      } else if (isBrowser) {
+      } else if (isBrowser || isWorker) {
         _fs = await import("./browser-fs.js");
       } else {
         throw new UniversalFsError(
@@ -57,8 +57,8 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.1.2",
-    env: isNode ? "node" : isBrowser ? "browser" : "unknown",
+    version: "v0.1.3",
+    env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
