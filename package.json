@@ -51,7 +51,9 @@
   ],
   "scripts": {
     "test": "vitest",
-    "test:bw-preview": "vitest --config vitest.preview.config.ts"
+    "test:bw-preview": "vitest --config vitest.preview.config.ts",
+    "ic": "npx rimraf yarn.lock node_modules && yarn install",
+    "up": "yarn upgrade-interactive --latest"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.2.4",
