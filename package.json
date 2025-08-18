@@ -1,12 +1,14 @@
 {
   "name": "@jeffy-g/universal-fs",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Universal file system utils for Node.js and Browser in TypeScript.",
   "sideEffects": false,
   "type": "module",
+  "browser": "./dist/browser.js",
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "browser": "./dist/browser.js",
       "types": "./dist/index.d.ts"
     }
   },

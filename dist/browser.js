@@ -6,10 +6,9 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 /**
- * @file universal-fs/src/index.ts
+ * @file universal-fs/src/browser.ts
  */
-import { isNode, isBrowser, isWorker } from "./types.js";
-import { UniversalFsError } from "./utils.js";
+import * as bwfs from "./browser-fs.js";
 /**
  * @import {
  *  IUniversalFs,
@@ -23,46 +22,23 @@ import { UniversalFsError } from "./utils.js";
  * WIP
  */
 export const ufs = (() => {
-  // Optimize bundle size with lazy loading
-  let _fs;
-  async function getInternalFs() {
-    if (!_fs) {
-      // _fs = await import("./browser-fs.js");
-      if (isNode) {
-        _fs = await import("./node-fs.js");
-      } else if (isBrowser || isWorker) {
-        _fs = await import("./browser-fs.js");
-      } else {
-        throw new UniversalFsError(
-          "Unsupported environment: neither Node.js nor browser detected",
-        );
-      }
-    }
-    return _fs;
-  }
   /**
    * @type {<T extends unknown>(method: keyof IInternalFs, ...args: unknown[]) => Promise<T>}
    */
-  const _invokeLazyFs = async (method, ...args) => {
-    const fs = await getInternalFs();
-    //* ctt
+  const _invokeFs = async (method, ...args) => {
     // @ts-expect-error parameter compatibility ts(2349)
-    return fs[method](...args);
-    /*/
-        if (method === "readFile") return fs.readFile(...args as Parameters<IInternalFs["readFile"]>) as T;
-        return fs.writeFile(...args as Parameters<IInternalFs["writeFile"]>) as T;
-        //*/
+    return bwfs[method](...args);
   };
   /**
    * Get and Read by `format` type
    * @type {<T extends unknown>(filename: TUFSInputType, format: TUFSFormat, options?: TUFSOptions) => Promise<T>}
    */
   const _getNRead = async (filename, format, options = {}) => {
-    return _invokeLazyFs("readFile", filename, { ...options, format });
+    return _invokeFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.1.4",
-    env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
+    version: "v0.1.3",
+    env: "browser",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
@@ -78,7 +54,7 @@ export const ufs = (() => {
      */
     // TUFSReadFileSigBase
     async readFile(filename, options) {
-      return _invokeLazyFs("readFile", filename, options);
+      return _invokeFs("readFile", filename, options);
     },
     /**
      * Writes data to a file.
@@ -92,7 +68,7 @@ export const ufs = (() => {
      */
     async writeFile(filename, data, options) {
       // TODO: 2025/7/28 15:40:44 - type inference...
-      return _invokeLazyFs("writeFile", filename, data, options);
+      return _invokeFs("writeFile", filename, data, options);
     },
     // - - - - - - - -
     //      read
@@ -146,7 +122,7 @@ export const ufs = (() => {
      * @returns Promise of universal file operation result.
      */
     writeText: async (filename, text, options) => {
-      return _invokeLazyFs("writeFile", filename, text, options);
+      return _invokeFs("writeFile", filename, text, options);
     },
     /**
      * Serializes and writes a JavaScript object as JSON.
@@ -157,7 +133,7 @@ export const ufs = (() => {
      */
     writeJSON: async (filename, data, options) => {
       data = JSON.stringify(data, null, 2);
-      return _invokeLazyFs("writeFile", filename, data, options);
+      return _invokeFs("writeFile", filename, data, options);
     },
     /**
      * Writes a Blob to a file.
@@ -167,7 +143,7 @@ export const ufs = (() => {
      * @returns Promise of universal file operation result.
      */
     writeBlob: async (filename, blob, options) => {
-      return _invokeLazyFs("writeFile", filename, blob, options);
+      return _invokeFs("writeFile", filename, blob, options);
     },
     /**
      * Writes an ArrayBuffer to a file.
@@ -177,7 +153,7 @@ export const ufs = (() => {
      * @returns Promise of universal file operation result.
      */
     writeBuffer: async (filename, buffer, options) => {
-      return _invokeLazyFs("writeFile", filename, buffer, options);
+      return _invokeFs("writeFile", filename, buffer, options);
     },
   });
 })();
