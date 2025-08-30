@@ -1,5 +1,5 @@
-import type { IUniversalFs } from "./types";
-export type * from "./types";
+import type { IUniversalFs } from "./types.ts";
+export type * from "./types.ts";
 /**
  * @import {
  *  IUniversalFs,

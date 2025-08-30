@@ -14,7 +14,7 @@ import type {
   TMimeType,
   TUFSFormat,
   TUFSOptions,
-} from "./types";
+} from "./types.ts";
 export declare function handleBlob(
   subject: Blob | File,
   format: TUFSFormat,

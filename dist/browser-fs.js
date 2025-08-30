@@ -12,11 +12,11 @@ import {
   UniversalFsError,
   guessMimeType,
   sanitizeFilename,
-  convertToJSON,
   formatFsErrorMessage,
   createErrorParameters,
-  decideFormat,
   emitReadFileFunction,
+  // decideFormat,
+  // convertToJSON,
 } from "./utils.js";
 /**
  * @import {
@@ -82,40 +82,44 @@ export async function writeFile(filename, data, options = {}) {
   }
 }
 // helper
-const te = new TextDecoder();
-/**
- * Converts an ArrayBuffer to the specified format based on `options.format`.
- *
- * Supported formats:
- * - `"text"` → UTF-8 decoded string
- * - `"json"` → Parsed JSON object or array (with error handling)
- * - `"blob"` → `Blob` with inferred MIME type
- * - `"binary"` → `Uint8Array`
- * - `"arrayBuffer"` → `ArrayBuffer`
- *
- * @template T - Target data type after conversion.
- * @param {ArrayBuffer} buffer - Raw binary data to convert.
- * @param {TMimeType} mimeType - MIME type for Blob creation.
- * @param {TUFSOptions} options - Options specifying desired format.
- * @returns {Promise<T>} Converted data in the requested format.
- * @throws {Error} If the format is unknown or JSON parsing fails.
- */
-async function convertFromBuffer(buffer, mimeType, options) {
-  const format = decideFormat(options);
-  switch (format) {
-    case "text": /* falls through */
-    case "json":
-      const text = te.decode(buffer);
-      if (format === "text") return text;
-      return convertToJSON(text);
-    case "blob":
-      return new Blob([buffer], { type: mimeType });
-    case "binary": /* falls through */
-    case "arrayBuffer":
-      if (format === "arrayBuffer") return buffer;
-      return new Uint8Array(buffer);
-  }
-}
+// const te = new TextDecoder();
+// /**
+//  * Converts an ArrayBuffer to the specified format based on `options.format`.
+//  *
+//  * Supported formats:
+//  * - `"text"` → UTF-8 decoded string
+//  * - `"json"` → Parsed JSON object or array (with error handling)
+//  * - `"blob"` → `Blob` with inferred MIME type
+//  * - `"binary"` → `Uint8Array`
+//  * - `"arrayBuffer"` → `ArrayBuffer`
+//  *
+//  * @template T - Target data type after conversion.
+//  * @param {ArrayBuffer} buffer - Raw binary data to convert.
+//  * @param {TMimeType} mimeType - MIME type for Blob creation.
+//  * @param {TUFSOptions} options - Options specifying desired format.
+//  * @returns {Promise<T>} Converted data in the requested format.
+//  * @throws {Error} If the format is unknown or JSON parsing fails.
+//  */
+// async function convertFromBuffer<T>(
+//   buffer: ArrayBuffer,
+//   mimeType: TMimeType,
+//   options: TUFSOptions
+// ): Promise<T> {
+//   const format = decideFormat(options);
+//   switch (format) {
+//     case "text": /* falls through */
+//     case "json":
+//       const text = te.decode(buffer);
+//       if (format === "text") return text as T;
+//       return convertToJSON<T>(text);
+//     case "blob":
+//       return new Blob([buffer], { type: mimeType }) as T;
+//     case "binary": /* falls through */
+//     case "arrayBuffer":
+//       if (format === "arrayBuffer") return buffer as T;
+//       return new Uint8Array(buffer) as T;
+//   }
+// }
 /**
  * Triggers download of a Blob by creating and clicking an invisible anchor element.
  *

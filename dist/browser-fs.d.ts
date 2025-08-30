@@ -1,4 +1,4 @@
-import type { TUFSResult, TUFSOptions, IInternalFs } from "./types";
+import type { TUFSResult, TUFSOptions, IInternalFs } from "./types.ts";
 /**
  * Reads a file via HTTP(S) or from a Blob/File in a browser environment.
  *

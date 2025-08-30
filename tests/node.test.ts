@@ -40,7 +40,7 @@ describe('Universal FS - Node.js Environment', () => {
 
   describe('Basic Properties', () => {
     it('should have version property', () => {
-      expect(ufs.version).toBe('v0.1.4');
+      expect(ufs.version).toBe('v0.1.5');
     });
 
     it('should expose all required methods', () => {
@@ -90,7 +90,7 @@ describe('Universal FS - Node.js Environment', () => {
 
   describe('JSON Operations', () => {
     it('should write and read JSON objects', async () => {
-      const testData = { name: 'test', version: '1.0.0', features: ['read', 'write'] };
+      const testData = { name: 'test', version: '0.1.4', features: ['read', 'write'] };
 
       await ufs.writeJSON(testFiles.json, testData);
       expect(existsSync(testFiles.json)).toBe(true);
@@ -115,11 +115,11 @@ describe('Universal FS - Node.js Environment', () => {
         debug: boolean;
       }
 
-      const testData: TestConfig = { name: 'test-app', version: '2.0.0', debug: true };
+      const testData: TestConfig = { name: 'test-app', version: '0.1.4', debug: true };
       await ufs.writeJSON(testFiles.json, testData);
       const result = await ufs.readJSON<TestConfig>(testFiles.json);
       expect(result.name).toBe('test-app');
-      expect(result.version).toBe('2.0.0');
+      expect(result.version).toBe('0.1.4');
       expect(result.debug).toBe(true);
     });
 

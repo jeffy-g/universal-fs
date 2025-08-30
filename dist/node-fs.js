@@ -134,6 +134,8 @@ async function exists(path) {
 /**
  * Converts raw Buffer data into the desired type based on the `format` option.
  *
+ * NOTE: Only for node (because the type to be converted is different)
+ *
  * - `"text"` → returns string (default, uses encoding or UTF-8)
  * - `"json"` → parses as JSON and returns an object or array
  * - `"binary"` → returns Node.js Buffer (Uint8Array)

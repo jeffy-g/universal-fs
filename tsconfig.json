@@ -2,11 +2,10 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "noEmit": true,
-    // "declaration": true,
     // "declarationMap": true,
     // "outDir": "./dist",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "es2022",
     "allowJs": true,
     "strict": true
