@@ -124,7 +124,7 @@ export type TUFSReadFileSig<
   filename: Input,
   options?: Opt,
 ) => Promise<Ret>;
-export type TUFSWriteFileSig<T extends BlobPart> = <
+export type TUFSWriteFileSig<T = unknown> = <
   Opt extends TUFSOptions,
   R extends Opt extends {
     useDetails: true;
@@ -137,6 +137,7 @@ export type TUFSWriteFileSig<T extends BlobPart> = <
   options?: Opt,
 ) => Promise<R>;
 export declare interface IInternalFs {
+  exists(pathOrUrl: string): Promise<boolean>;
   /**
    * Reads a file and returns the contents.
    * @param filename - Path or name of the file.

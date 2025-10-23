@@ -35,3 +35,15 @@ export declare function writeFile<
     ? TUFSResult
     : void,
 >(filename: string, data: BlobPart, options?: Opt): Promise<R>;
+/**
+ * Checks whether a file or directory exists at the given URL.
+ *
+ * This is done by sending a HEAD request to the URL.
+ *
+ * - Does **not** throw if the URL does not exist.
+ * - Use in both sync/async-safe code paths.
+ *
+ * @param {string} url - The URL to check.
+ * @returns `true` if the URL exists (response status 200-299), otherwise `false`.
+ */
+export declare function exists(url: string): Promise<boolean>;

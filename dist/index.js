@@ -61,11 +61,14 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.1.5",
+    version: "v0.2.0",
     env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
+    exists(pathOrUrl) {
+      return _invokeLazyFs("exists", pathOrUrl);
+    },
     /**
      * Reads a file and returns the contents.
      * @param filename Path or name of the file.

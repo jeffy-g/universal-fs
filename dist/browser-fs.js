@@ -81,6 +81,27 @@ export async function writeFile(filename, data, options = {}) {
     });
   }
 }
+/**
+ * Checks whether a file or directory exists at the given URL.
+ *
+ * This is done by sending a HEAD request to the URL.
+ *
+ * - Does **not** throw if the URL does not exist.
+ * - Use in both sync/async-safe code paths.
+ *
+ * @param {string} url - The URL to check.
+ * @returns `true` if the URL exists (response status 200-299), otherwise `false`.
+ */
+export async function exists(url) {
+  try {
+    const response = await fetch(url, { method: "head", mode: "cors" });
+    return response.ok;
+    // response.text().then(str => console.log(str)); // -> empty result
+    // return response.headers.get("content-length") > "0";
+  } catch {
+    return false;
+  }
+}
 // helper
 // const te = new TextDecoder();
 // /**

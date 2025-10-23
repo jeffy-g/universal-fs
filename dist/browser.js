@@ -42,6 +42,9 @@ export const ufs = (() => {
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
+    exists(pathOrUrl) {
+      return _invokeFs("exists", pathOrUrl);
+    },
     /**
      * Reads a file and returns the contents.
      * @param filename Path or name of the file.

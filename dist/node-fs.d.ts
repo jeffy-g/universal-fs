@@ -33,3 +33,16 @@ export declare function writeFile<
     ? TUFSResult
     : void,
 >(filename: string, data: BlobPart, options?: Opt): Promise<R>;
+/**
+ * Checks whether a file or directory exists at the given path.
+ *
+ * This is a modern and Promise-based alternative to the deprecated `fs.exists()` API,
+ * using `fs.access()` with `constants.F_OK`.
+ *
+ * - Does **not** throw if the path does not exist.
+ * - Use in both sync/async-safe code paths.
+ *
+ * @param {string} path - The filesystem path to check.
+ * @returns `true` if the path exists, otherwise `false`.
+ */
+export declare function exists(path: string): Promise<boolean>;

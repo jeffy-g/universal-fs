@@ -123,7 +123,7 @@ export async function writeFile(filename, data, options = {}) {
  * @param {string} path - The filesystem path to check.
  * @returns `true` if the path exists, otherwise `false`.
  */
-async function exists(path) {
+export async function exists(path) {
   try {
     await fs.access(path, constants.F_OK);
     return true;
