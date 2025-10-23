@@ -183,6 +183,40 @@ export interface IUniversalFs extends IInternalFs {
   version: string;
   env: TUFSEnvironment;
   /**
+   * Extracts the file extension from a given path.
+   *
+   * This function returns the extension including the leading dot (e.g., `.json`).
+   * It safely handles:
+   * - Paths with nested directories (`a/b/c.txt`)
+   * - Hidden files with no extension (`.gitignore`) — returns an empty string
+   * - Files with multiple dots (`archive.tar.gz`) — returns `.gz`
+   *
+   * @param {string} path - The file path string to extract the extension from.
+   * @returns The file extension including the dot, or an empty string if no valid extension exists.
+   *
+   * @example
+   * extname("src/audio/test.mid");         // → ".mid"
+   * extname("/home/user/.bashrc");         // → ""
+   * extname("foo.tar.gz");                 // → ".gz"
+   * extname("C:\\Projects\\index.html");   // → ".html"
+   * extname("noext");                      // → ""
+   */
+  extname(path: string): string;
+  /**
+   * Extracts the file name from a path, optionally removing a known extension.
+   *
+   * @param {string} path - The path string to process.
+   * @param {string=} extToStrip - Optional. If provided and matches the file extension, it will be removed.
+   * @returns File name with or without the extension.
+   *
+   * @example
+   * basename("/foo/bar/baz.txt");                 // → "baz.txt"
+   * basename("/foo/bar/baz.txt", ".txt");         // → "baz"
+   * basename("C:\\data\\file.tar.gz", ".gz");     // → "file.tar"
+   * basename(".hiddenfile");                      // → ".hiddenfile"
+   */
+  basename(path: string, extToStrip?: string): string;
+  /**
    * Reads a file as plain text.
    */
   readText: TUFSReadFileSig<string>;

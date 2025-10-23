@@ -19,6 +19,22 @@ import { UniversalFsError } from "./utils.js";
  *  TUFSInputType,
  * } from "./types.d.ts"
  */
+function extname(path) {
+  const basename = path.split(/[/\\]/).pop() || "";
+  const ext = basename.split(".");
+  const splitedLen = ext.length;
+  // ensure it's not a hidden file like ".gitignore"
+  return splitedLen > 1 && ext[splitedLen - 2] !== ""
+    ? "." + ext[splitedLen - 1]
+    : "";
+}
+function basename(path, extToStrip) {
+  const base = path.split(/[/\\]/).pop() || "";
+  if (extToStrip && base.endsWith(extToStrip)) {
+    return base.slice(0, -extToStrip.length);
+  }
+  return base;
+}
 /**
  * WIP
  */
@@ -61,11 +77,13 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.2.0",
+    version: "v0.3.0",
     env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
+    extname,
+    basename,
     exists(pathOrUrl) {
       return _invokeLazyFs("exists", pathOrUrl);
     },

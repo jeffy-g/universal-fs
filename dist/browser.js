@@ -37,8 +37,23 @@ export const ufs = (() => {
     return _invokeFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.1.3",
+    version: "v0.3.0",
     env: "browser",
+    extname(path) {
+      const basename = path.split(/[/\\]/).pop() || "";
+      const ext = basename.split(".");
+      const splitedLen = ext.length;
+      return splitedLen > 1 && ext[splitedLen - 2] !== ""
+        ? "." + ext[splitedLen - 1]
+        : "";
+    },
+    basename(path, extToStrip) {
+      const base = path.split(/[/\\]/).pop() || "";
+      if (extToStrip && base.endsWith(extToStrip)) {
+        return base.slice(0, -extToStrip.length);
+      }
+      return base;
+    },
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
