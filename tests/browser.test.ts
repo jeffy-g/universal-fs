@@ -87,7 +87,7 @@ describe('Universal FS - Browser Environment', () => {
 
   describe('Basic Properties', () => {
     it('should have version property', () => {
-      expect(ufs.version).toBe('v0.3.0');
+      expect(ufs.version).toBe('v0.3.1');
     });
 
     it('should expose all required methods', () => {

@@ -217,6 +217,12 @@ export interface IUniversalFs extends IInternalFs {
    */
   basename(path: string, extToStrip?: string): string;
   /**
+   * Returns the directory name of a path.
+   * @param {string} filePath - The input file path.
+   * @returns {string} The directory name.
+   */
+  dirname(filePath: string): string;
+  /**
    * Reads a file as plain text.
    */
   readText: TUFSReadFileSig<string>;

@@ -35,6 +35,25 @@ function basename(path, extToStrip) {
   }
   return base;
 }
+function dirname(filePath) {
+  // edge cases: empty or only root
+  if (filePath === "" || filePath === "/") {
+    return "/";
+  }
+  // Normalize path separators to "/"
+  filePath = filePath.replace(/\\/g, "/");
+  // Remove trailing slashes except root
+  const noTrailing = filePath.replace(/\/+$/, "");
+  // Find last separator pos
+  const lastSlash = noTrailing.lastIndexOf("/");
+  if (lastSlash === -1) {
+    return ".";
+  }
+  if (lastSlash === 0) {
+    return "/";
+  }
+  return noTrailing.slice(0, lastSlash);
+}
 /**
  * WIP
  */
@@ -77,13 +96,14 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.3.0",
+    version: "v0.3.1",
     env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
     // - - - - - - - -
     //    atomic
     // - - - - - - - -
     extname,
     basename,
+    dirname,
     exists(pathOrUrl) {
       return _invokeLazyFs("exists", pathOrUrl);
     },
