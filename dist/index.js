@@ -10,6 +10,8 @@
  */
 import { isNode, isBrowser, isWorker } from "./types.js";
 import { UniversalFsError } from "./utils.js";
+// 2025/11/11 15:08:27 - expose isNode, isBrowser, isWorker
+export * from "./types.js";
 /**
  * @import {
  *  IUniversalFs,
@@ -96,7 +98,7 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.3.1",
+    version: "v0.3.2",
     env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
     // - - - - - - - -
     //    atomic

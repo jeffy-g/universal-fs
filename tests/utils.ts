@@ -2,7 +2,7 @@
  * @file universal-fs/tests/utils.ts
  */
 export const IMPORT_ROOT = "../dist";
-const suffix = "universal-fs/";
+const suffix = "";
 export const PKG_JSON_PATH = `./${suffix}package.json`;
 export const LOCAL_TEXT_PATH = `./${suffix}project-tree.txt`;
 /**

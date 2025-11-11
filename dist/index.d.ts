@@ -1,4 +1,5 @@
 import type { IUniversalFs } from "./types.ts";
+export * from "./types.js";
 export type {
   UWrap,
   IInternalFs,

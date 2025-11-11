@@ -37,7 +37,7 @@ export const ufs = (() => {
     return _invokeFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.3.1",
+    version: "v0.3.2",
     env: "browser",
     extname(path) {
       const basename = path.split(/[/\\]/).pop() || "";
