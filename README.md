@@ -249,6 +249,52 @@ console.log(result.timestamp); // Operation timestamp
 
 </details>
 
+### Environment Helpers
+
+<details>
+
+#### `selectFromEnv(key, cb)`
+
+Environment-aware helper for reading simple flags across Node.js and browser runtimes.
+
+- **Node.js**: reads from `process.env[key]`
+- **Browser**: reads from `globalThis[key]` (e.g. `window.FEATURE_FLAG`)
+- **Other environments**: passes `undefined` to the callback
+
+```ts
+import { selectFromEnv } from "@jeffy-g/universal-fs";
+
+// ✅ Toggle a feature flag: "1" -> enabled
+const featureEnabled = selectFromEnv("FEATURE_EXPORT", (flag?: "1" | "0") => {
+  return flag === "1";
+});
+
+// ✅ Use Case 2: Explicitly specifying the type
+const featureEnabled2 = selectFromEnv<"1" | "0", boolean>(
+  "FEATURE_EXPORT",
+  (flag) => {
+    return flag === "1";
+  }
+);
+// ✅ Use Case 3: More complex return types
+const config = selectFromEnv("APP_ENV", (env?: "dev" | "prod" | "test") => {
+  return {
+    isDev: env === "dev",
+    isProd: env === "prod",
+    logLevel: env === "prod" ? "error" : "debug"
+  };
+}); // { isDev: boolean; isProd: boolean; logLevel: string }
+
+// ✅ Use Case 4: Filtering Types
+const port = selectFromEnv<`${number}`, number>("PORT", (p) => {
+  return p ? parseInt(p, 10) : 3000;
+});
+```
+
+This keeps environment branching logic localized and type-safe while avoiding direct checks against `ufs.env` in application code.
+
+</details>
+
 ### Options & Types
 
 <details>
@@ -521,4 +567,3 @@ MIT © [jeffy-g](https://github.com/jeffy-g)
 ---
 
 > **Need help?** Check out our [examples](examples/) or [open an issue](https://github.com/jeffy-g/universal-fs/issues).
-

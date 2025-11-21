@@ -39,7 +39,7 @@ export const ufs = (() => {
     return _invokeFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.4.1",
+    version: "v0.4.2",
     env: "browser",
     extname,
     basename,

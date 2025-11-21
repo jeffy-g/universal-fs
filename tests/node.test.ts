@@ -40,7 +40,7 @@ describe('Universal FS - Node.js Environment', () => {
 
   describe('Basic Properties', () => {
     it('should have version property', () => {
-      expect(ufs.version).toBe('v0.4.1');
+      expect(ufs.version).toBe('v0.4.2');
     });
 
     it('should expose all required methods', () => {
