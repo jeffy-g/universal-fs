@@ -16,6 +16,7 @@ export type {
   TUFSOptNoFormat,
   InferBaseType,
 } from "./types.ts";
+export { selectFromEnv } from "./env.js";
 /**
  * WIP
  */

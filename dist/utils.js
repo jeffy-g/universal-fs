@@ -10,6 +10,36 @@
  *  IUniversalFsErrorParams,
  * } from "./utils.d.ts"
  */
+export function extname(path) {
+  const basename = path.split(/[/\\]/).pop() || "";
+  const ext = basename.split(".");
+  const splitedLen = ext.length;
+  return splitedLen > 1 && ext[splitedLen - 2] !== ""
+    ? "." + ext[splitedLen - 1]
+    : "";
+}
+export function basename(path, extToStrip) {
+  const base = path.split(/[/\\]/).pop() || "";
+  if (extToStrip && base.endsWith(extToStrip)) {
+    return base.slice(0, -extToStrip.length);
+  }
+  return base;
+}
+export function dirname(filePath) {
+  if (filePath === "" || filePath === "/") {
+    return "/";
+  }
+  filePath = filePath.replace(/\\/g, "/");
+  const noTrailing = filePath.replace(/\/+$/, "");
+  const lastSlash = noTrailing.lastIndexOf("/");
+  if (lastSlash === -1) {
+    return ".";
+  }
+  if (lastSlash === 0) {
+    return "/";
+  }
+  return noTrailing.slice(0, lastSlash);
+}
 /** @type {(value?: unknown) => string} */
 const toString = {}.toString;
 /**
@@ -24,8 +54,6 @@ const isBlob = (value) => {
   const tag = toString.call(value);
   return tag === "[object Blob]" || tag === "[object File]";
 };
-// format=blob の場合、subject を `convertedData` として割り当て、`buffer` は undefined になる (実質、buffer の利用は不要)
-// それ以外の場合、convertedData=undefined, buffer=await blob.arrayBuffer()
 export async function handleBlob(subject, format) {
   let url;
   let size;
@@ -33,15 +61,12 @@ export async function handleBlob(subject, format) {
   let mimeType;
   let actualFilename;
   let convertedData;
-  // case Blob, File
   const blob = subject;
   const isFile = "name" in subject;
   size = blob.size;
-  // if instanceof File use name property, otherwise will be empty string
   actualFilename = isFile ? subject.name : "anonymous";
   url = `local-${isFile ? "file" : "blob"}://${encodeURIComponent(actualFilename)}`;
   mimeType = blob.type || guessMimeType(actualFilename);
-  // If format is "blob", use it as is
   if (format === "blob") {
     convertedData = blob;
   } else {
@@ -62,7 +87,6 @@ async function handleURL(filename) {
   let buffer;
   let mimeType;
   let actualFilename;
-  // Handle URL input
   const response = await fetch(filename);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -95,7 +119,6 @@ export function emitReadFileFunction(strategy, readFileLocal) {
       let actualFilename;
       let convertedData;
       if (typeof filename === "string") {
-        // Handle URL input
         try {
           ({ url, size, buffer, mimeType, actualFilename } =
             await handleURL(filename));
@@ -113,7 +136,6 @@ export function emitReadFileFunction(strategy, readFileLocal) {
         ({ url, size, buffer, mimeType, actualFilename, convertedData } =
           await handleBlob(filename, options.format || "text"));
       } else {
-        // TypeScript exhaustiveness check
         throw new Error(MSG_UNSUPPORTED_INPUT);
       }
       if (buffer && !convertedData) {
@@ -138,7 +160,6 @@ export function emitReadFileFunction(strategy, readFileLocal) {
   }
   return readFile;
 }
-// helper
 const te = new TextDecoder();
 /**
  * Converts an ArrayBuffer to the specified format based on `options.format`.
@@ -223,7 +244,7 @@ export function decideFormat(options) {
   if (isValidFormat(format)) {
     return format;
   }
-  return format; // This will never be reached due to the isValidFormat check
+  return format;
 }
 /**
  * Custom error class for universal file system operations.
@@ -316,7 +337,6 @@ export const formatFsErrorMessage = (e, strategy, operation) => {
  * @todo extract extenstion with types from https://github.com/jshttp/mime-db
  */
 const MIME_TYPES = {
-  // text
   ".txt": "text/plain",
   ".json": "application/json",
   ".csv": "text/csv",
@@ -326,7 +346,6 @@ const MIME_TYPES = {
   ".js": "application/javascript",
   ".ts": "application/typescript",
   ".xml": "application/xml",
-  // image (binary)
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -334,28 +353,23 @@ const MIME_TYPES = {
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
-  // audio, vidoe (binary)
   ".mp3": "audio/mpeg",
   ".wav": "audio/wav",
   ".ogg": "audio/ogg",
   ".mp4": "video/mp4",
   ".webm": "video/webm",
   ".avi": "video/x-msvideo",
-  // - midi data
   ".mid": "audio/midi",
   ".midi": "audio/midi",
-  // document (binary)
   ".pdf": "application/pdf",
   ".doc": "application/msword",
   ".docx":
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ".xls": "application/vnd.ms-excel",
   ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  // archive (binary)
   ".zip": "application/zip",
   ".tar": "application/x-tar",
   ".gz": "application/gzip",
-  // Ableton .als format (application/x-ableton-als ?)
   ".als": "application/gzip",
 };
 const FILE_EXTENSION_REGEX = /\.[a-zA-Z0-9]+$/;
@@ -381,13 +395,9 @@ export function guessMimeType(filename) {
  * @returns {Blob | Buffer} The resulting Blob if supported, or the original Buffer as a fallback.
  */
 export function convertToBlob(rawData, mimeType) {
-  // The proper way to create a Blob in Node.js
-  // Blob is available in Node.js 15.7.0+
   try {
-    // ts-expect-error (ts v5.9.0-dev *) Buffer is a subclass of `Uint8Array` and valid `BlobPart` in runtime
     return new Blob([rawData], { type: mimeType });
   } catch (e) {
-    // For older Node.js versions where Blob is not available, returns a Buffer instead.
     console.warn(
       "Blob is not available in this Node.js version, returning Buffer instead",
     );
@@ -426,44 +436,8 @@ export function convertToJSON(jsonString) {
  * @returns {string} The sanitized filename, with unsafe characters replaced and length capped at 255.
  */
 export function sanitizeFilename(filename) {
-  // Remove dangerous characters
   return filename
     .replace(/[<>:"/\\|?*]/g, "_")
     .replace(/^\.+/, "")
     .slice(0, 255);
 }
-// NOTE: Remove in future
-// /**
-//  * Returns the native data type for a given format.(Node.js)
-//  *
-//  * @param format Format name
-//  * @returns Example Default value
-//  * @date 2025/7/26 17:54:31
-//  */
-// export function convertDataForFormat<T extends TUFSFormat>(
-//   rawData: Buffer,
-//   mimeType: TMimeType,
-//   format: T
-// ): IUFSFormatMap[T] {
-//   let result: unknown;
-//   switch (format) {
-//     case "text": /* falls through */
-//     case "json":
-//       result = rawData.toString("utf8");
-//       if (format === "json")
-//         result = convertToJSON(result as string);
-//       break;
-//     case "arrayBuffer":
-//       result = rawData.buffer.slice(rawData.byteOffset, rawData.byteOffset + rawData.byteLength);
-//       break;
-//     case "blob":
-//       result = convertToBlob(rawData, mimeType);
-//       break;
-//     case "binary":
-//       result = rawData;
-//       break;
-//     default:
-//       throw new Error(`Unsupported format: ${format}`);
-//   }
-//   return result as IUFSFormatMap[T];
-// }

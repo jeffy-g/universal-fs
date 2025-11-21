@@ -15,8 +15,6 @@ import {
   formatFsErrorMessage,
   createErrorParameters,
   emitReadFileFunction,
-  // decideFormat,
-  // convertToJSON,
 } from "./utils.js";
 /**
  * @import {
@@ -43,9 +41,6 @@ const writeErrParams = createErrorParameters(void 0, "browser", "write");
  * @returns Result object containing the data.
  * @type {IInternalFs["readFile"]}
  */
-// local file read:
-//   node env の場合、file access permision に問題なければ無制限
-//   browser env では不可
 export const readFile = emitReadFileFunction("browser");
 /**
  * Writes a file in the browser by triggering a download.
@@ -96,51 +91,10 @@ export async function exists(url) {
   try {
     const response = await fetch(url, { method: "head", mode: "cors" });
     return response.ok;
-    // response.text().then(str => console.log(str)); // -> empty result
-    // return response.headers.get("content-length") > "0";
   } catch {
     return false;
   }
 }
-// helper
-// const te = new TextDecoder();
-// /**
-//  * Converts an ArrayBuffer to the specified format based on `options.format`.
-//  *
-//  * Supported formats:
-//  * - `"text"` → UTF-8 decoded string
-//  * - `"json"` → Parsed JSON object or array (with error handling)
-//  * - `"blob"` → `Blob` with inferred MIME type
-//  * - `"binary"` → `Uint8Array`
-//  * - `"arrayBuffer"` → `ArrayBuffer`
-//  *
-//  * @template T - Target data type after conversion.
-//  * @param {ArrayBuffer} buffer - Raw binary data to convert.
-//  * @param {TMimeType} mimeType - MIME type for Blob creation.
-//  * @param {TUFSOptions} options - Options specifying desired format.
-//  * @returns {Promise<T>} Converted data in the requested format.
-//  * @throws {Error} If the format is unknown or JSON parsing fails.
-//  */
-// async function convertFromBuffer<T>(
-//   buffer: ArrayBuffer,
-//   mimeType: TMimeType,
-//   options: TUFSOptions
-// ): Promise<T> {
-//   const format = decideFormat(options);
-//   switch (format) {
-//     case "text": /* falls through */
-//     case "json":
-//       const text = te.decode(buffer);
-//       if (format === "text") return text as T;
-//       return convertToJSON<T>(text);
-//     case "blob":
-//       return new Blob([buffer], { type: mimeType }) as T;
-//     case "binary": /* falls through */
-//     case "arrayBuffer":
-//       if (format === "arrayBuffer") return buffer as T;
-//       return new Uint8Array(buffer) as T;
-//   }
-// }
 /**
  * Triggers download of a Blob by creating and clicking an invisible anchor element.
  *
@@ -155,11 +109,10 @@ async function triggerDownload(url, filename) {
       link.href = url;
       link.download = filename;
       link.style.display = "none";
-      // Added timeout function
       const timeout = setTimeout(() => {
         cleanup();
         reject(new Error("Download timeout"));
-      }, 30000); // 30sec
+      }, 30000);
       const cleanup = () => {
         clearTimeout(timeout);
         if (document.body.contains(link)) {
@@ -175,7 +128,6 @@ async function triggerDownload(url, filename) {
         },
         { once: true },
       );
-      // Also monitors error events
       link.addEventListener(
         "error",
         (e) => {

@@ -1,5 +1,6 @@
 import type { IUniversalFs } from "./types.ts";
 export type * from "./types.ts";
+export { selectFromEnv } from "./env.js";
 /**
  * @import {
  *  IUniversalFs,

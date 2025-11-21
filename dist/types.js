@@ -32,6 +32,5 @@ export const isBrowser = (() => {
     !globalThis.process?.versions?.node
   );
 })();
-// WIP: 2025/8/6 15:42:07 - web worker
 export const isWorker =
   typeof self !== "undefined" && typeof self.importScripts === "function";

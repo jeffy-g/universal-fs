@@ -31,7 +31,6 @@ import {
 const writeErrParams = createErrorParameters(void 0, "node", "write");
 async function readFileLocal(filename, options = {}) {
   if (typeof filename !== "string") {
-    // TODO: 2025/7/31 7:11:15 - Or, Blob and File will be supported (in the future)
     throw new Error(MSG_UNSUPPORTED_INPUT);
   }
   const fullPath = path.resolve(filename);
@@ -69,9 +68,6 @@ async function readFileLocal(filename, options = {}) {
  * @returns Result object containing the data.
  * @type {IInternalFs["readFile"]}
  */
-// local file read:
-//   node env の場合、file access permision に問題なければ無制限
-//   browser env では不可
 export const readFile = emitReadFileFunction("node", readFileLocal);
 /**
  * Write a file in Node.js environment.
@@ -84,13 +80,11 @@ export const readFile = emitReadFileFunction("node", readFileLocal);
 export async function writeFile(filename, data, options = {}) {
   try {
     const fullPath = path.resolve(filename);
-    // If the directory does not exist, create it
     const dir = path.dirname(fullPath);
     if (!(await exists(dir))) {
       await fs.mkdir(dir, { recursive: true });
     }
     const normalized = await normalizeWriteData(data, options);
-    // Since normalizeWriteData always returns a Uint8Array, there is no point in passing encoding to fs.writeFile.
     await fs.writeFile(fullPath, normalized /* , options.encoding || "utf8" */);
     if (options.useDetails) {
       const stats = await fs.stat(fullPath);
@@ -156,19 +150,15 @@ function convertFromBuffer(rawData, options, filepath) {
     case "json":
       const text = rawData.toString(options.encoding || "utf8");
       if (format === "text") return text;
-      // T = Record<string, unknown> | unknown[] | object
       return convertToJSON(text);
     case "binary":
-      // T = Uint8Array
       return rawData;
     case "arrayBuffer":
-      // T = ArrayBuffer
       return rawData.buffer.slice(
         rawData.byteOffset,
         rawData.byteOffset + rawData.byteLength,
       );
     case "blob":
-      // T = Blob | Buffer(fallback)
       return convertToBlob(rawData, guessMimeType(filepath));
   }
 }
@@ -185,34 +175,24 @@ function convertFromBuffer(rawData, options, filepath) {
  * @todo Future: Add support for multi-byte encodings (Shift_JIS, EUC-JP, etc.) via iconv-lite or Web TextDecoder API.
  */
 async function normalizeWriteData(data, options) {
-  // 1. Uint8Array or Buffer (Node.js Buffer is Uint8Array subclass)
   if (data instanceof Uint8Array) {
     return data;
   }
   const encoding = options?.encoding || "utf8";
-  // 2. String → Encode using specified encoding
   if (typeof data === "string") {
     return Buffer.from(data, encoding);
   }
-  // 3. ArrayBuffer → Wrap in Uint8Array
   if (data instanceof ArrayBuffer) {
     return new Uint8Array(data);
   }
-  // 4. Blob → Handle text or binary based on encoding
   if (data instanceof Blob) {
     if (encoding !== "binary") {
-      // `encoding` is probably the text type. Interpret Blob as text and encode
-      // NOTE: Blob.text() always decodes as UTF-8. If original encoding was different,
-      // data will be corrupted. encoding param applies only to re-encode the UTF-8 text.
-      // **Blob.text() always returns a UTF-8 decoded string (as per the spec)**
       const text = await data.text();
       return Buffer.from(text, encoding);
     }
-    // encoding is binary or not
     const ab = await data.arrayBuffer();
     return new Uint8Array(ab);
   }
-  // 5. TypedArray (other than Uint8Array) or DataView
   if (ArrayBuffer.isView(data)) {
     return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
   }

@@ -9,6 +9,8 @@
  * @file universal-fs/src/browser.ts
  */
 import * as bwfs from "./browser-fs.js";
+import { extname, basename, dirname } from "./utils.js";
+export { selectFromEnv } from "./env.js";
 /**
  * @import {
  *  IUniversalFs,
@@ -37,45 +39,11 @@ export const ufs = (() => {
     return _invokeFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.3.2",
+    version: "v0.4.1",
     env: "browser",
-    extname(path) {
-      const basename = path.split(/[/\\]/).pop() || "";
-      const ext = basename.split(".");
-      const splitedLen = ext.length;
-      return splitedLen > 1 && ext[splitedLen - 2] !== ""
-        ? "." + ext[splitedLen - 1]
-        : "";
-    },
-    basename(path, extToStrip) {
-      const base = path.split(/[/\\]/).pop() || "";
-      if (extToStrip && base.endsWith(extToStrip)) {
-        return base.slice(0, -extToStrip.length);
-      }
-      return base;
-    },
-    dirname(filePath) {
-      // edge cases: empty or only root
-      if (filePath === "" || filePath === "/") {
-        return "/";
-      }
-      // Normalize path separators to "/"
-      filePath = filePath.replace(/\\/g, "/");
-      // Remove trailing slashes except root
-      const noTrailing = filePath.replace(/\/+$/, "");
-      // Find last separator pos
-      const lastSlash = noTrailing.lastIndexOf("/");
-      if (lastSlash === -1) {
-        return ".";
-      }
-      if (lastSlash === 0) {
-        return "/";
-      }
-      return noTrailing.slice(0, lastSlash);
-    },
-    // - - - - - - - -
-    //    atomic
-    // - - - - - - - -
+    extname,
+    basename,
+    dirname,
     exists(pathOrUrl) {
       return _invokeFs("exists", pathOrUrl);
     },
@@ -89,7 +57,6 @@ export const ufs = (() => {
      * console.log(result.data);
      * ```
      */
-    // TUFSReadFileSigBase
     async readFile(filename, options) {
       return _invokeFs("readFile", filename, options);
     },
@@ -104,12 +71,8 @@ export const ufs = (() => {
      * ```
      */
     async writeFile(filename, data, options) {
-      // TODO: 2025/7/28 15:40:44 - type inference...
       return _invokeFs("writeFile", filename, data, options);
     },
-    // - - - - - - - -
-    //      read
-    // - - - - - - - -
     /**
      * Reads a file as plain text.
      * @param filename Path or name of the file.
@@ -126,7 +89,6 @@ export const ufs = (() => {
      * @param [options] Optional settings for encoding, etc.
      * @returns Promise of universal file operation result.
      */
-    // readJSON: async (filename: string, options) => {
     async readJSON(filename, options) {
       return _getNRead(filename, "json", options);
     },
@@ -148,9 +110,6 @@ export const ufs = (() => {
     readBuffer: async (filename, options) => {
       return _getNRead(filename, "arrayBuffer", options);
     },
-    // - - - - - - - -
-    //     write
-    // - - - - - - - -
     /**
      * Writes a string as plain text to a file.
      * @param filename Target filename or path.

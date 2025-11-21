@@ -15,6 +15,21 @@ import type {
   TUFSFormat,
   TUFSOptions,
 } from "./types.ts";
+/**
+ * @import {
+ *  IInternalFs,
+ *  TMimeType,
+ *  TUFSFormat,
+ *  TUFSOptions,
+ * } from "./types.d.ts";
+ *
+ * @import {
+ *  IUniversalFsErrorParams,
+ * } from "./utils.d.ts"
+ */
+export declare function extname(path: string): string;
+export declare function basename(path: string, extToStrip?: string): string;
+export declare function dirname(filePath: string): string;
 export declare function handleBlob(
   subject: Blob | File,
   format: TUFSFormat,

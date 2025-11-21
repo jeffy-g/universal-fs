@@ -9,9 +9,9 @@
  * @file universal-fs/src/index.ts
  */
 import { isNode, isBrowser, isWorker } from "./types.js";
-import { UniversalFsError } from "./utils.js";
-// 2025/11/11 15:08:27 - expose isNode, isBrowser, isWorker
+import { UniversalFsError, extname, basename, dirname } from "./utils.js";
 export * from "./types.js";
+export { selectFromEnv } from "./env.js";
 /**
  * @import {
  *  IUniversalFs,
@@ -21,50 +21,14 @@ export * from "./types.js";
  *  TUFSInputType,
  * } from "./types.d.ts"
  */
-function extname(path) {
-  const basename = path.split(/[/\\]/).pop() || "";
-  const ext = basename.split(".");
-  const splitedLen = ext.length;
-  // ensure it's not a hidden file like ".gitignore"
-  return splitedLen > 1 && ext[splitedLen - 2] !== ""
-    ? "." + ext[splitedLen - 1]
-    : "";
-}
-function basename(path, extToStrip) {
-  const base = path.split(/[/\\]/).pop() || "";
-  if (extToStrip && base.endsWith(extToStrip)) {
-    return base.slice(0, -extToStrip.length);
-  }
-  return base;
-}
-function dirname(filePath) {
-  // edge cases: empty or only root
-  if (filePath === "" || filePath === "/") {
-    return "/";
-  }
-  // Normalize path separators to "/"
-  filePath = filePath.replace(/\\/g, "/");
-  // Remove trailing slashes except root
-  const noTrailing = filePath.replace(/\/+$/, "");
-  // Find last separator pos
-  const lastSlash = noTrailing.lastIndexOf("/");
-  if (lastSlash === -1) {
-    return ".";
-  }
-  if (lastSlash === 0) {
-    return "/";
-  }
-  return noTrailing.slice(0, lastSlash);
-}
 /**
  * WIP
  */
 export const ufs = (() => {
-  // Optimize bundle size with lazy loading
+  /** @type {IInternalFs} */
   let _fs;
   async function getInternalFs() {
     if (!_fs) {
-      // _fs = await import("./browser-fs.js");
       if (isNode) {
         _fs = await import("./node-fs.js");
       } else if (isBrowser || isWorker) {
@@ -82,13 +46,8 @@ export const ufs = (() => {
    */
   const _invokeLazyFs = async (method, ...args) => {
     const fs = await getInternalFs();
-    //* ctt
     // @ts-expect-error parameter compatibility ts(2349)
     return fs[method](...args);
-    /*/
-        if (method === "readFile") return fs.readFile(...args as Parameters<IInternalFs["readFile"]>) as T;
-        return fs.writeFile(...args as Parameters<IInternalFs["writeFile"]>) as T;
-        //*/
   };
   /**
    * Get and Read by `format` type
@@ -98,11 +57,8 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.3.2",
+    version: "v0.4.1",
     env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
-    // - - - - - - - -
-    //    atomic
-    // - - - - - - - -
     extname,
     basename,
     dirname,
@@ -119,7 +75,6 @@ export const ufs = (() => {
      * console.log(result.data);
      * ```
      */
-    // TUFSReadFileSigBase
     async readFile(filename, options) {
       return _invokeLazyFs("readFile", filename, options);
     },
@@ -134,12 +89,8 @@ export const ufs = (() => {
      * ```
      */
     async writeFile(filename, data, options) {
-      // TODO: 2025/7/28 15:40:44 - type inference...
       return _invokeLazyFs("writeFile", filename, data, options);
     },
-    // - - - - - - - -
-    //      read
-    // - - - - - - - -
     /**
      * Reads a file as plain text.
      * @param filename Path or name of the file.
@@ -156,7 +107,6 @@ export const ufs = (() => {
      * @param [options] Optional settings for encoding, etc.
      * @returns Promise of universal file operation result.
      */
-    // readJSON: async (filename: string, options) => {
     async readJSON(filename, options) {
       return _getNRead(filename, "json", options);
     },
@@ -178,9 +128,6 @@ export const ufs = (() => {
     readBuffer: async (filename, options) => {
       return _getNRead(filename, "arrayBuffer", options);
     },
-    // - - - - - - - -
-    //     write
-    // - - - - - - - -
     /**
      * Writes a string as plain text to a file.
      * @param filename Target filename or path.
