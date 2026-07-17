@@ -10,7 +10,8 @@
  */
 import * as bwfs from "./browser-fs.js";
 import { extname, basename, dirname } from "./utils.js";
-export { selectFromEnv } from "./env.js";
+export * from "./types.js";
+export { selectFromEnv, loadModule } from "./env.js";
 /**
  * @import {
  *  IUniversalFs,
@@ -39,7 +40,7 @@ export const ufs = (() => {
     return _invokeFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.4.2",
+    version: "v0.5.0",
     env: "browser",
     extname,
     basename,

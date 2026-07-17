@@ -11,7 +11,7 @@
 import { isNode, isBrowser, isWorker } from "./types.js";
 import { UniversalFsError, extname, basename, dirname } from "./utils.js";
 export * from "./types.js";
-export { selectFromEnv } from "./env.js";
+export { selectFromEnv, loadModule } from "./env.js";
 /**
  * @import {
  *  IUniversalFs,
@@ -57,7 +57,7 @@ export const ufs = (() => {
     return _invokeLazyFs("readFile", filename, { ...options, format });
   };
   return /** @satisfies {IUniversalFs} */ ({
-    version: "v0.4.2",
+    version: "v0.5.0",
     env: isNode ? "node" : isBrowser || isWorker ? "browser" : "unknown",
     extname,
     basename,

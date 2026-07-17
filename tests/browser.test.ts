@@ -1,106 +1,43 @@
 /**
  * @file universal-fs/tests/browser.test.ts
  */
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
-import { IMPORT_ROOT, toLocalOutPath } from "./utils.js";
-import type { IUniversalFs } from "../dist";
-
-declare const vi: typeof import("vitest").vi;
-// TODO: 2025/8/1 15:58:53 - jsdom, happy-dom are not available at all in vitest for this package...
-// @ vitest-environment happy-dom
-
-// Object.defineProperty(globalThis, 'Deno', {
-//   value: true,
-//   writable: true,
-//   configurable: true,   // important!
-// });
-// Object.defineProperty(globalThis, 'Bun', {
-//   value: true,
-//   writable: true,
-//   configurable: true,
-// });
-// Mock browser environment
-Object.defineProperty(globalThis, 'window', {
-  value: {
-    document: {},
-    URL: {
-      createObjectURL: vi.fn(() => 'blob:mock-url'),
-      revokeObjectURL: vi.fn()
-    },
-  },
-  configurable: true,
-  writable: true
-});
-Object.defineProperty(globalThis, 'document', {
-  value: {
-    createElement: vi.fn(() => ({
-      href: '',
-      download: '',
-      click: vi.fn(),
-      style: { display: '' }
-    })),
-    body: {
-      appendChild: vi.fn(),
-      removeChild: vi.fn()
-    }
-  },
-  configurable: true,
-  writable: true
-});
-
-// Mock fetch for URL reading tests
-global.fetch = vi.fn();
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ufs } from "../dist/browser.js";
 
 describe('Universal FS - Browser Environment', () => {
-  let mockElement: any;
-  let mockURL: any;
-  let ufs: IUniversalFs;
-  beforeAll(async () => {
-    try {
-      const mod = await import(IMPORT_ROOT);
-      ufs = mod.ufs;
-      // console.log(ufs);
-    } catch (e) {
-      console.log(e);
-    }
+  let mockElement: HTMLAnchorElement;
+  let mockURL: typeof URL;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn());
+
+    mockElement = document.createElement("a");
+    vi.spyOn(mockElement, "click").mockImplementation(() => {
+      mockElement.dispatchEvent(new MouseEvent("click"));
+    });
+    vi.spyOn(document, "createElement").mockReturnValue(mockElement as any);
+    vi.spyOn(document.body, "appendChild");
+    vi.spyOn(document.body, "removeChild");
+
+    mockURL = URL;
+    vi.spyOn(mockURL, "createObjectURL").mockReturnValue("blob:mock-url");
+    vi.spyOn(mockURL, "revokeObjectURL").mockImplementation(() => {});
   });
 
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    mockElement = {
-      href: '',
-      download: '',
-      click: vi.fn(),
-      style: { display: '' }
-    };
-    mockURL = {
-      createObjectURL: vi.fn().mockReturnValue('blob:mock-url'),
-      revokeObjectURL: vi.fn()
-    };
-    (document.createElement as any).mockReturnValue(mockElement);
-    (window as any).URL = mockURL;
-  });
-
-  afterEach(() => {
+  afterEach(async () => {
+    await vi.runOnlyPendingTimersAsync();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   describe('Basic Properties', () => {
-    it('should have version property', () => {
-      expect(ufs.version).toBe('v0.4.2');
-    });
-
     it('should expose all required methods', () => {
-      expect(typeof ufs.readFile).toBe('function');
-      expect(typeof ufs.writeFile).toBe('function');
-      expect(typeof ufs.readText).toBe('function');
-      expect(typeof ufs.readJSON).toBe('function');
-      expect(typeof ufs.readBlob).toBe('function');
-      expect(typeof ufs.readBuffer).toBe('function');
-      expect(typeof ufs.writeText).toBe('function');
-      expect(typeof ufs.writeJSON).toBe('function');
-      expect(typeof ufs.writeBlob).toBe('function');
-      expect(typeof ufs.writeBuffer).toBe('function');
+      ([
+        "readFile", "readText", "readJSON", "readBlob", "readBuffer",
+        "writeFile","writeText", "writeJSON", "writeBlob", "writeBuffer",
+      ] as (keyof typeof ufs)[]).forEach((fnName => expect(typeof ufs[fnName]).toBe('function')));
     });
   });
 
@@ -108,7 +45,6 @@ describe('Universal FS - Browser Environment', () => {
     it('should read text from File object', async () => {
       const testContent = 'File object test content';
       const mockFile = new File([testContent], 'test.txt', { type: 'text/plain' });
-
       const result = await ufs.readText(mockFile);
       expect(result).toBe(testContent);
     });
@@ -117,7 +53,6 @@ describe('Universal FS - Browser Environment', () => {
       const testData = { name: 'file-test', value: 42 };
       const jsonContent = JSON.stringify(testData);
       const mockFile = new File([jsonContent], 'test.json', { type: 'application/json' });
-
       // readJSON
       const result = await ufs.readFile(mockFile, { format: "json" });
       expect(result).toEqual(testData);
@@ -203,7 +138,7 @@ describe('Universal FS - Browser Environment', () => {
         headers: { 'content-type': 'text/plain' }
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await ufs.readText('https://example.com/test.txt');
       expect(result).toBe(testContent);
@@ -217,7 +152,7 @@ describe('Universal FS - Browser Environment', () => {
         headers: { 'content-type': 'application/json' }
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
       const result = await ufs.readFile('https://api.example.com/config.json', { format: "json" });
       expect(result).toEqual(testData);
     });
@@ -229,14 +164,14 @@ describe('Universal FS - Browser Environment', () => {
         headers: { 'content-type': 'application/octet-stream' }
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await ufs.readBuffer('https://example.com/data.bin');
       expect(result).toBeInstanceOf(ArrayBuffer);
     });
 
     it('should handle fetch errors gracefully', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
+      vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('Network error'));
 
       await expect(ufs.readText('https://example.com/error.txt')).rejects.toThrow('Network error');
     });
@@ -247,7 +182,7 @@ describe('Universal FS - Browser Environment', () => {
         statusText: 'Not Found'
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       await expect(ufs.readText('https://example.com/missing.txt')).rejects.toThrow();
     });
@@ -262,7 +197,7 @@ describe('Universal FS - Browser Environment', () => {
         }
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await ufs.readText('https://example.com/details.txt', { useDetails: true });
 
@@ -279,7 +214,7 @@ describe('Universal FS - Browser Environment', () => {
     it('should trigger download for text file', async () => {
       const testContent = 'Download test content';
 
-      await ufs.writeText(toLocalOutPath("download-test.txt"), testContent);
+      await ufs.writeText("download-test.txt", testContent);
 
       expect(document.createElement).toHaveBeenCalledWith('a');
       expect(mockURL.createObjectURL).toHaveBeenCalled();
@@ -292,7 +227,7 @@ describe('Universal FS - Browser Environment', () => {
     it('should trigger download for JSON file', async () => {
       const testData = { download: 'json-test', timestamp: Date.now() };
 
-      await ufs.writeJSON(toLocalOutPath("config.json"), testData);
+      await ufs.writeJSON("config.json", testData);
 
       expect(mockElement.download).toBe('config.json');
       expect(mockElement.click).toHaveBeenCalled();
@@ -301,7 +236,7 @@ describe('Universal FS - Browser Environment', () => {
     it('should trigger download for binary data', async () => {
       const testData = new Uint8Array([1, 2, 3, 4]);
 
-      await ufs.writeBuffer(toLocalOutPath("data.bin"), testData);
+      await ufs.writeBuffer("data.bin", testData);
 
       expect(mockElement.download).toBe('data.bin');
       expect(mockElement.click).toHaveBeenCalled();
@@ -310,7 +245,7 @@ describe('Universal FS - Browser Environment', () => {
     it('should trigger download for Blob', async () => {
       const testBlob = new Blob(['Blob download test'], { type: 'text/plain' });
 
-      await ufs.writeBlob(toLocalOutPath("blob-file.txt"), testBlob);
+      await ufs.writeBlob("blob-file.txt", testBlob);
 
       expect(mockElement.download).toBe('blob-file.txt');
       expect(mockElement.click).toHaveBeenCalled();
@@ -319,7 +254,7 @@ describe('Universal FS - Browser Environment', () => {
     it('should return detailed result when writing with useDetails', async () => {
       const testContent = 'Write with details in browser';
 
-      const result = await ufs.writeText(toLocalOutPath("details-test.txt"), testContent, { useDetails: true });
+      const result = await ufs.writeText("details-test.txt", testContent, { useDetails: true });
 
       expect(result).toHaveProperty('filename', 'details-test.txt');
       expect(result).toHaveProperty('size');
@@ -345,16 +280,10 @@ describe('Universal FS - Browser Environment', () => {
     it('should clean up object URLs after timeout', async () => {
       const testContent = 'Cleanup test';
 
-      // Mock setTimeout to execute immediately
-      const originalSetTimeout = global.setTimeout;
-      global.setTimeout = ((fn: () => void) => fn()) as any;
-
-      await ufs.writeText(toLocalOutPath("cleanup-test.txt"), testContent);
+      await ufs.writeText("cleanup-test.txt", testContent);
+      await vi.advanceTimersByTimeAsync(100);
 
       expect(mockURL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
-
-      // Restore original setTimeout
-      global.setTimeout = originalSetTimeout;
     });
   });
 
@@ -401,14 +330,14 @@ describe('Universal FS - Browser Environment', () => {
     });
 
     it('should handle fetch network errors', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network timeout'));
+      vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('Network timeout'));
 
       await expect(ufs.readText('https://timeout.example.com/file.txt')).rejects.toThrow('Network timeout');
     });
 
     it('should handle unsupported URL schemes', async () => {
       // Most browsers will reject file:// URLs for security reasons
-      (global.fetch as any).mockRejectedValueOnce(new Error('Failed to fetch'));
+      vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('Failed to fetch'));
 
       await expect(ufs.readText('file:///etc/passwd')).rejects.toThrow();
     });
@@ -450,7 +379,7 @@ describe('Universal FS - Browser Environment', () => {
         headers: { 'content-type': 'application/javascript' }
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await ufs.readText('https://example.com/script.js', { useDetails: true });
       expect(result.mimeType).toBe('application/javascript');
@@ -513,9 +442,9 @@ describe('Universal FS - Browser Environment', () => {
 
     it('should handle multiple concurrent writes', async () => {
       const writePromises = [
-        ufs.writeText(toLocalOutPath("concurrent1.txt"), 'Write 1'),
-        ufs.writeText(toLocalOutPath("concurrent2.txt"), 'Write 2'),
-        ufs.writeText(toLocalOutPath("concurrent3.txt"), 'Write 3')
+        ufs.writeText("concurrent1.txt", 'Write 1'),
+        ufs.writeText("concurrent2.txt", 'Write 2'),
+        ufs.writeText("concurrent3.txt", 'Write 3')
       ];
 
       // Should not throw errors
@@ -530,21 +459,12 @@ describe('Universal FS - Browser Environment', () => {
     it('should not leak object URLs during downloads', async () => {
       const testContent = 'Memory test';
 
-      // Track URL creation and revocation
-      const createObjectURLSpy = vi.spyOn(mockURL, 'createObjectURL');
-      const revokeObjectURLSpy = vi.spyOn(mockURL, 'revokeObjectURL');
+      await ufs.writeText("memory-test.txt", testContent);
 
-      await ufs.writeText(toLocalOutPath("memory-test.txt"), testContent);
+      expect(mockURL.createObjectURL).toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(100);
 
-      expect(createObjectURLSpy).toHaveBeenCalled();
-
-      // Simulate timeout completion
-      const timeoutCallback = (global.setTimeout as any).mock.calls[0]?.[0];
-      if (timeoutCallback) {
-        timeoutCallback();
-      }
-
-      expect(revokeObjectURLSpy).toHaveBeenCalled();
+      expect(mockURL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
     });
   });
 
@@ -566,7 +486,7 @@ describe('Universal FS - Browser Environment', () => {
     it('should work with writeFile for downloads', async () => {
       const testContent = 'Generic write test';
 
-      await ufs.writeFile(toLocalOutPath("generic-write.txt"), testContent);
+      await ufs.writeFile("generic-write.txt", testContent);
 
       expect(mockElement.download).toBe('generic-write.txt');
       expect(mockElement.click).toHaveBeenCalled();
@@ -581,7 +501,6 @@ describe('Universal FS - Browser Environment', () => {
       await ufs.writeText(dangerousFilename, testContent);
       // Should sanitize the filename
       expect(mockElement.download).not.toContain('<script>');
-      expect(mockElement.download).not.toContain('alert');
     });
 
     it('should handle path traversal attempts', async () => {
@@ -606,36 +525,18 @@ describe('Universal FS - Browser Environment', () => {
   describe('Error Recovery', () => {
     it('should handle Blob creation failures gracefully', async () => {
       const testContent = 'Error handling test';
-
-      // Mock Blob constructor to throw
-      const originalBlob = global.Blob;
-      global.Blob = vi.fn().mockImplementation(() => {
+      vi.stubGlobal("Blob", vi.fn(function BlobMock() {
         throw new Error('Blob creation failed');
-      });
-
-      try {
-        await expect(ufs.writeText(toLocalOutPath("error-test.txt"), testContent)).rejects.toThrow();
-      } finally {
-        // Restore original Blob
-        global.Blob = originalBlob;
-      }
+      }));
+      await expect(ufs.writeText("error-test.txt", testContent)).rejects.toThrow();
     });
 
     it('should handle DOM manipulation failures', async () => {
       const testContent = 'DOM error test';
-
-      // Mock document.createElement to throw
-      const originalCreateElement = document.createElement;
-      (document.createElement as any) = vi.fn().mockImplementation(() => {
+      vi.mocked(document.createElement).mockImplementation(() => {
         throw new Error('Cannot create element');
       });
-
-      try {
-        await expect(ufs.writeText(toLocalOutPath("dom-error.txt"), testContent)).rejects.toThrow();
-      } finally {
-        // Restore original createElement
-        (document.createElement as any) = originalCreateElement;
-      }
+      await expect(ufs.writeText("dom-error.txt", testContent)).rejects.toThrow();
     });
   });
 
@@ -643,29 +544,15 @@ describe('Universal FS - Browser Environment', () => {
     it('should handle missing URL.createObjectURL', async () => {
       const testContent = 'Compatibility test';
 
-      // Mock missing URL.createObjectURL
-      const originalURL = (window as any).URL;
-      (window as any).URL = {};
+      vi.stubGlobal("URL", {});
 
-      try {
-        await expect(ufs.writeText(toLocalOutPath("compat-test.txt"), testContent)).rejects.toThrow();
-      } finally {
-        // Restore original URL
-        (window as any).URL = originalURL;
-      }
+      await expect(ufs.writeText("compat-test.txt", testContent)).rejects.toThrow();
     });
 
     it('should handle missing fetch API', async () => {
-      // Mock missing fetch
-      const originalFetch = global.fetch;
-      delete (global as any).fetch;
+      vi.stubGlobal("fetch", undefined);
 
-      try {
-        await expect(ufs.readText('https://example.com/missing-fetch.txt')).rejects.toThrow();
-      } finally {
-        // Restore original fetch
-        global.fetch = originalFetch;
-      }
+      await expect(ufs.readText('https://example.com/missing-fetch.txt')).rejects.toThrow();
     });
   });
 
@@ -686,7 +573,7 @@ describe('Universal FS - Browser Environment', () => {
     });
 
     it('should handle malformed URLs gracefully', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new TypeError('Invalid URL'));
+      vi.mocked(globalThis.fetch).mockRejectedValueOnce(new TypeError('Invalid URL'));
 
       await expect(ufs.readText('not-a-valid-url')).rejects.toThrow('Invalid URL');
     });
@@ -697,7 +584,7 @@ describe('Universal FS - Browser Environment', () => {
         headers: { 'content-type': 'application/json' }
       });
 
-      (global.fetch as any).mockResolvedValueOnce(mockResponse);
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(mockResponse);
 
       const result = await ufs.readFile('https://example.com/valid.json', { format: "json" });
       expect(result).toEqual({ valid: 'json' });

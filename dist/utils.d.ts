@@ -8,6 +8,7 @@
 /**
  * @file universal-fs/src/utils.ts
  */
+/// <reference types="node" preserve="true" />
 import type {
   IInternalFs,
   TUFSData,
@@ -15,6 +16,9 @@ import type {
   TUFSFormat,
   TUFSOptions,
 } from "./types.ts";
+import type { IUniversalFsErrorParams } from "./ufs-error.ts";
+export { UniversalFsError } from "./ufs-error.js";
+export type { IUniversalFsErrorParams } from "./ufs-error.js";
 /**
  * @import {
  *  IInternalFs,
@@ -22,10 +26,7 @@ import type {
  *  TUFSFormat,
  *  TUFSOptions,
  * } from "./types.d.ts";
- *
- * @import {
- *  IUniversalFsErrorParams,
- * } from "./utils.d.ts"
+ * @import { IUniversalFsErrorParams } from "./ufs-error.ts";
  */
 export declare function extname(path: string): string;
 export declare function basename(path: string, extToStrip?: string): string;
@@ -86,59 +87,6 @@ export declare const isValidFormat: (format: string) => format is TUFSFormat;
  */
 export declare function decideFormat(options: TUFSOptions): TUFSFormat | never;
 /**
- * Parameters interface for UniversalFsError constructor.
- * Provides structured error context information for universal file system operations.
- */
-export interface IUniversalFsErrorParams {
-  /** The underlying cause of the error (original error object, exception, etc.) */
-  cause?: unknown;
-  /** The execution strategy/environment where the error occurred */
-  strategy?: "node" | "browser";
-  /** The type of file operation that failed */
-  operation?: "read" | "write" | "both";
-  /** The filename or path associated with the failed operation */
-  filename?: string;
-}
-/**
- * Custom error class for universal file system operations.
- *
- * Provides enhanced error information including execution context,
- * operation type, and underlying cause for better debugging and error handling.
- *
- * @example
- * // Basic usage
- * throw new UniversalFsError("File not found");
- *
- * // With detailed context
- * throw new UniversalFsError("Permission denied", {
- *   cause: originalError,
- *   strategy: "node",
- *   operation: "read",
- *   filename: "/path/to/file.txt"
- * });
- *
- * // Using helper function
- * const params = createErrorParameters(err, "browser", "write", "config.json");
- * throw new UniversalFsError("Write failed", params);
- */
-export declare class UniversalFsError extends Error {
-  /** The underlying cause of the error */
-  readonly cause?: unknown;
-  /** The execution strategy/environment where the error occurred */
-  readonly strategy?: IUniversalFsErrorParams["strategy"];
-  /** The type of file operation that failed */
-  readonly operation?: IUniversalFsErrorParams["operation"];
-  /** The filename or path associated with the failed operation */
-  readonly filename?: string;
-  /**
-   * Creates a new UniversalFsError instance.
-   *
-   * @param message - The error message describing what went wrong
-   * @param params - Optional structured parameters providing error context
-   */
-  constructor(message: string, params?: IUniversalFsErrorParams);
-}
-/**
  * Helper function to create error parameters object with type safety.
  *
  * Provides a convenient way to construct `IUniversalFsErrorParams` objects
@@ -159,12 +107,7 @@ export declare const createErrorParameters: (
   strategy?: IUniversalFsErrorParams["strategy"],
   operation?: IUniversalFsErrorParams["operation"],
   filename?: string,
-) => {
-  cause: unknown;
-  strategy: "node" | "browser" | undefined;
-  operation: "read" | "write" | "both" | undefined;
-  filename: string | undefined;
-};
+) => IUniversalFsErrorParams;
 /**
  * Formats a standardized error message for file system operations.
  *

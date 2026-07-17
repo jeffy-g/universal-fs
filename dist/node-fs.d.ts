@@ -27,11 +27,11 @@ export declare const readFile: IInternalFs["readFile"];
  */
 export declare function writeFile<
   Opt extends TUFSOptions,
-  R extends Opt extends {
+  R extends (Opt extends {
     useDetails: true;
   }
     ? TUFSResult
-    : void,
+    : void),
 >(filename: string, data: BlobPart, options?: Opt): Promise<R>;
 /**
  * Checks whether a file or directory exists at the given path.

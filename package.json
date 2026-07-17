@@ -1,6 +1,6 @@
 {
   "name": "@jeffy-g/universal-fs",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Universal file system utils for Node.js and Browser in TypeScript.",
   "sideEffects": false,
   "type": "module",
@@ -52,14 +52,18 @@
     "deno-compatible"
   ],
   "scripts": {
+    "pretest": "npx rimraf -g ./coverage/*",
     "test": "vitest",
-    "test:bw-preview": "vitest --config vitest.preview.config.ts",
+    "test:browser": "vitest --config ./vitest.browser.config.ts --run",
+    "test:browser:install": "playwright install chromium",
     "ic": "npx rimraf yarn.lock node_modules && yarn install",
     "up": "yarn upgrade-interactive --latest"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-v8": "4.1.10",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "playwright": "^1.61.1",
+    "vitest": "^4.1.10"
   }
 }

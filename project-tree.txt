@@ -1,47 +1,30 @@
->tree /f .
 universal-fs
-│  .gitignore
-│  LICENSE
-│  package.json
-│  project-tree.txt
-│  README.md
-│  tsconfig.json
-│  vitest.config.ts
-│  yarn.lock
-│
-├─.github
-│  └─workflows
-│          main.yml
-│
-├─dist
-│      browser-fs.d.ts
-│      browser-fs.js
-│      index.d.ts
-│      index.js
-│      node-fs.d.ts
-│      node-fs.js
-│      types.d.ts
-│      types.js
-│      utils.d.ts
-│      utils.js
-│
-├─fragments
-│  │  helpers.ts
-│  │  ufs-sample.ts
-│  │  vitest.config.ts.list
-│  │
-│  ├─ok
-│  └─preview
-│          browser.test.ts
-│
-├─tests
-│      browser-readfile.test.ts
-│      integration.test.ts
-│      node-readfile.test.ts
-│      node.test.ts
-│      readfile-errors.test.ts
-│      utils.ts
-│
-└─tmp
-    └─tests
-
+.
+|__.github
+| |__workflows
+| | |__main.yml
+|__.gitignore
+|__fragments
+| |__helpers.ts
+| |__ufs-sample.ts
+| |__vitest.config.ts.list
+|__LICENSE
+|__package.json
+|__project-tree.txt
+|__README.md
+|__tests
+| |__browser-readfile.test.ts
+| |__browser.test.ts
+| |__env.browser.test.ts
+| |__env.test.ts
+| |__helpers.ts
+| |__integration.test.ts
+| |__node-readfile.test.ts
+| |__node.test.ts
+| |__readfile-errors.test.ts
+| |__ufs-error.test.ts
+| |__utils.ts
+|__tsconfig.json
+|__vitest.browser.config.ts
+|__vitest.config.ts
+|__yarn.lock

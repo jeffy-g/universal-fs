@@ -19,7 +19,7 @@ import {
 /**
  * @import {
  * IInternalFs,
- * TMimeType,
+ * TUFSResult,
  * TUFSOptions,
  * } from "./types.d.ts"
  */
@@ -45,30 +45,36 @@ export const readFile = emitReadFileFunction("browser");
 /**
  * Writes a file in the browser by triggering a download.
  *
+ * @template {TUFSOptions} Opt
+ * @template {Opt extends { useDetails: true } ? TUFSResult : void} R
  * @param filename - The name to give the downloaded file.
  * @param data - The data to be written and downloaded.
- * @param [options] - Write options (e.g., mimeType).
- * @returns Universal file system result.
+ * @param {Opt} [options] - Write options (e.g., mimeType).
+ * @returns {Promise<R>} Universal file system result.
  * @throws {UniversalFsError} Throws when download triggering fails.
  * @type {IInternalFs["writeFile"]}
  */
-export async function writeFile(filename, data, options = {}) {
+export async function writeFile(
+  filename,
+  data,
+  options = /** @type {Opt} */ ({}),
+) {
   try {
     const mimeType = guessMimeType(filename);
     const blob = new Blob([data], { type: mimeType });
     const url = URL.createObjectURL(blob);
     await triggerDownload(url, sanitizeFilename(filename));
     if (options.useDetails) {
-      return {
+      return /** @type {R} */ ({
         filename,
         url,
         size: blob.size,
         strategy: "browser",
         timestamp: Date.now(),
         mimeType,
-      };
+      });
     }
-    return void 0;
+    return /** @type {R} */ (void 0);
   } catch (e) {
     throw new UniversalFsError(formatFsErrorMessage(e, "browser", "write"), {
       ...writeErrParams,
@@ -104,15 +110,13 @@ export async function exists(url) {
  */
 async function triggerDownload(url, filename) {
   return new Promise((resolve, reject) => {
+    /** @type {ReturnType<typeof setTimeout>} */
+    let timeout;
     try {
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
       link.style.display = "none";
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error("Download timeout"));
-      }, 30000);
       const cleanup = () => {
         clearTimeout(timeout);
         if (document.body.contains(link)) {
@@ -120,6 +124,10 @@ async function triggerDownload(url, filename) {
         }
         setTimeout(() => URL.revokeObjectURL(url), 100);
       };
+      timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error("Download timeout"));
+      }, 30000);
       link.addEventListener(
         "click",
         () => {

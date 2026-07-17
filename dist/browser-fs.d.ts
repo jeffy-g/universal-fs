@@ -20,20 +20,22 @@ export declare const readFile: IInternalFs["readFile"];
 /**
  * Writes a file in the browser by triggering a download.
  *
+ * @template {TUFSOptions} Opt
+ * @template {Opt extends { useDetails: true } ? TUFSResult : void} R
  * @param filename - The name to give the downloaded file.
  * @param data - The data to be written and downloaded.
- * @param [options] - Write options (e.g., mimeType).
- * @returns Universal file system result.
+ * @param {Opt} [options] - Write options (e.g., mimeType).
+ * @returns {Promise<R>} Universal file system result.
  * @throws {UniversalFsError} Throws when download triggering fails.
  * @type {IInternalFs["writeFile"]}
  */
 export declare function writeFile<
   Opt extends TUFSOptions,
-  R extends Opt extends {
+  R extends (Opt extends {
     useDetails: true;
   }
     ? TUFSResult
-    : void,
+    : void),
 >(filename: string, data: BlobPart, options?: Opt): Promise<R>;
 /**
  * Checks whether a file or directory exists at the given URL.

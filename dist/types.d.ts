@@ -126,11 +126,11 @@ export type TUFSReadFileSig<
 ) => Promise<Ret>;
 export type TUFSWriteFileSig<T = unknown> = <
   Opt extends TUFSOptions,
-  R extends Opt extends {
+  R extends (Opt extends {
     useDetails: true;
   }
     ? TUFSResult
-    : void,
+    : void),
 >(
   filename: string,
   data: T,
@@ -164,11 +164,11 @@ export declare interface IInternalFs {
   writeFile<
     D extends BlobPart,
     Opt extends TUFSOptions,
-    Ret extends Opt extends {
+    Ret extends (Opt extends {
       useDetails: true;
     }
       ? TUFSResult
-      : void,
+      : void),
   >(
     filename: string,
     data: D,
@@ -266,4 +266,10 @@ export interface IUniversalFs extends IInternalFs {
    */
   writeBuffer: TUFSWriteFileSig<ArrayBuffer | Uint8Array>;
 }
-export {};
+import type { UniversalFsError } from "./ufs-error.ts";
+export * from "./ufs-error.js";
+/**
+ * @param {unknown} e
+ * @returns {e is UniversalFsError}
+ */
+export declare const isUFSError: (e: unknown) => e is UniversalFsError;

@@ -34,3 +34,11 @@ export const isBrowser = (() => {
 })();
 export const isWorker =
   typeof self !== "undefined" && typeof self.importScripts === "function";
+export * from "./ufs-error.js";
+/**
+ * @param {unknown} e
+ * @returns {e is UniversalFsError}
+ */
+export const isUFSError = (e) => {
+  return e instanceof Error && e.name === "UniversalFsError";
+};

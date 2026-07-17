@@ -1,3 +1,4 @@
+/// <reference types="node" preserve="true" />
 /**
  * 🎛️ Environment‑aware selector for feature flags and runtime switches.
  *
@@ -46,3 +47,38 @@ export declare const selectFromEnv: <T extends string, R>(
   key: string,
   cb: (select?: T) => R,
 ) => R;
+/**
+ * Dynamically loads an ESM module using an environment-appropriate specifier.
+ *
+ * This helper is intended for projects that share module-loading code between
+ * Node.js and browser or worker runtimes:
+ *
+ * - **Node.js** imports `modId` unchanged, resolving installed packages,
+ *   built-in modules, and other specifiers supported by Node.js.
+ * - **Non-Node runtimes** load the package as ESM from jsDelivr using
+ *   `https://cdn.jsdelivr.net/npm/<modId>[@version]/+esm`.
+ *
+ * Module loading and caching are delegated to the runtime's native `import()`.
+ * This is a convenience loader, not a general-purpose package resolver;
+ * callers should prepare specialized package subpaths or URLs themselves.
+ *
+ * @example
+ * // Node.js: imports the locally installed package.
+ * // Browser/worker: imports fflate@0.8.2 from jsDelivr.
+ * const fflate = await loadModule<typeof import("fflate")>("fflate", "0.8.2");
+ *
+ * @template GR Module namespace type expected by the caller. This type is not
+ * validated at runtime.
+ * @param {string} modId Package or module specifier. It is passed directly to
+ * `import()` in Node.js and treated as a jsDelivr npm package identifier in
+ * non-Node runtimes.
+ * @param {string=} version Optional package version for the jsDelivr URL.
+ * This value is ignored in Node.js. Omit it when `modId` already contains the
+ * required version or package subpath.
+ * @returns {Promise<GR>} The imported ESM module namespace.
+ * @experimental 2026/07/18 04:39:42
+ */
+export declare const loadModule: <GR extends unknown>(
+  modId: string,
+  version?: string,
+) => Promise<GR>;

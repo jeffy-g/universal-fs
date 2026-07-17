@@ -2,10 +2,10 @@
  * @file universal-fs/tests/browser-readfile.test.ts
  */
 import { /* vi, */ describe, it, expect } from "vitest";
-import { readFile } from "../dist/browser-fs";
+import { readFile } from "../dist/browser-fs.js";
 import {
-  JSDELIVR_ICON_URL,
-} from "./utils";
+  JSDELIVR_NPM_PACKAGE_URL,
+} from "./utils.ts";
 
 
 describe("[Browser] FS Node Env Tests (no jsdom, with useDetails)", () => {
@@ -29,9 +29,9 @@ describe("[Browser] FS Node Env Tests (no jsdom, with useDetails)", () => {
     expect(result.data).toEqual(blob);
   });
 
-  it("should handle string URL input with text format (fetch, jsdelivr_icon.svg)", async () => {
-    const result = await readFile(JSDELIVR_ICON_URL, { format: "text", useDetails: true });
-    expect(result.data.slice(0, 63)).toBe(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="34">`);
+  it("should handle string URL input with text format (fetch, jsDelivr npm asset)", async () => {
+    const result = await readFile(JSDELIVR_NPM_PACKAGE_URL, { format: "text", useDetails: true });
+    expect(JSON.parse(result.data).name).toBe("fflate");
   });
   // it("should handle string URL input with text format (mock fetch)", async () => {
   //   // Prepare a mock fetch to mimic a URL fetch
@@ -66,8 +66,8 @@ describe("[Browser] FS Node Env Tests (no jsdom, without useDetails)", () => {
     expect(result).toEqual(blob);
   });
 
-  it("should handle string URL input with text format (fetch, jsdelivr_icon.svg)", async () => {
-    const result = await readFile(JSDELIVR_ICON_URL, { format: "text" });
-    expect(result.slice(0, 63)).toBe(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="34">`);
+  it("should handle string URL input with text format (fetch, jsDelivr npm asset)", async () => {
+    const result = await readFile(JSDELIVR_NPM_PACKAGE_URL, { format: "text" });
+    expect(JSON.parse(result).name).toBe("fflate");
   });
 });
