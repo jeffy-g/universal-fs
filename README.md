@@ -19,6 +19,7 @@ A lightweight, TypeScript-first library that provides consistent file I/O operat
 - 🚀 **Modern**: Built with ESM-first approach using native APIs
 - 🔗 **Flexible Input**: Supports URLs, File objects, and Blob objects in browsers
 - ⚡ **Lazy Loading**: Optimized bundle size with environment-specific lazy loading
+- 📦 **Runtime Module Loading**: Resolves installed ESM packages in Node.js and jsDelivr ESM packages in browsers and workers
 
 > ## 🚀 Quick Start
 
@@ -122,10 +123,10 @@ You can load **@jeffy-g/universal-fs** directly via CDN:
 To get the `sha384` hash:
 
 ```sh
-curl -sL "https://cdn.jsdelivr.net/npm/@jeffy-g/universal-fs@0.1.0/+esm" | openssl dgst -sha384 -binary | openssl base64 -A
+curl -sL "https://cdn.jsdelivr.net/npm/@jeffy-g/universal-fs@0.5.0/+esm" | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
-> **Important:** Always use a fixed version when using SRI (e.g., `@0.1.0` instead of `latest`).  
+> **Important:** Always use a fixed version when using SRI (e.g., `@0.5.0` instead of `latest`).  
 > or use THIS -> https://www.srihash.org/
 
 ## 🦕 Deno
@@ -133,9 +134,9 @@ You can import via `npm:` specifier or CDN:
 
 ```ts
 // Using npm:
-import { ufs } from "npm:@jeffy-g/universal-fs@0.1.0";
+import { ufs } from "npm:@jeffy-g/universal-fs@0.5.0";
 // Using CDN (jsDelivr):
-import { ufs } from "https://cdn.jsdelivr.net/npm/@jeffy-g/universal-fs@0.1.0/+esm";
+import { ufs } from "https://cdn.jsdelivr.net/npm/@jeffy-g/universal-fs@0.5.0/+esm";
 const result = await ufs.readFile("https://example.com/file.json", { format: "json" });
 ```
 
@@ -180,7 +181,7 @@ const result = await ufs.readFile("https://example.com/file.json", { format: "js
 <details>
 
 #### `readFile<T>(filename, options?)`
-Universal file reader with automatic format detection and advanced type inference.
+Universal file reader with explicit format selection and advanced type inference.
 
 ```ts
 // Read as text (default, inferred from no format specified)
@@ -292,6 +293,40 @@ const port = selectFromEnv<`${number}`, number>("PORT", (p) => {
 ```
 
 This keeps environment branching logic localized and type-safe while avoiding direct checks against `ufs.env` in application code.
+
+#### `loadModule<Module>(modId, version?)`
+
+> **Experimental in v0.5.0**
+
+Dynamically imports an ESM module using a specifier appropriate for the current runtime.
+
+- **Node.js**: passes `modId` directly to native `import()`. The optional `version` is ignored.
+- **Non-Node runtimes**, including browsers and workers: convert the arguments to `https://cdn.jsdelivr.net/npm/<modId>[@version]/+esm`.
+- **Caching**: delegated to the runtime's native ESM module cache. Repeated imports of the same resolved specifier return the same module namespace.
+- **Bundlers**: the generated dynamic import is left for runtime resolution in Vite and webpack builds.
+
+```ts
+import { loadModule } from "@jeffy-g/universal-fs";
+
+// Node.js imports the installed package.
+// Browsers and workers import fflate@0.8.3 from jsDelivr.
+const fflate = await loadModule<typeof import("fflate")>("fflate", "0.8.3");
+
+const source = new TextEncoder().encode("hello");
+const compressed = fflate.gzipSync(source);
+```
+
+The generic type parameter only describes the expected module namespace to TypeScript; it does not validate the loaded module at runtime.
+
+For a package subpath that must work in both Node.js and non-Node runtimes, use an unversioned subpath and omit the second argument. Node.js resolves the installed package version, while jsDelivr resolves its default version:
+
+```ts
+const mod = await loadModule("package-name/subpath");
+```
+
+For a pinned, non-Node-only subpath, include the version in `modId`, for example `package-name@1.2.3/subpath`. A versioned npm specifier is not valid as a Node.js bare import, and the separate `version` argument is intended for package roots rather than subpaths.
+
+In browsers and workers, the jsDelivr request must be allowed by the page's network policy and Content Security Policy. `loadModule` is a small environment switch, not a package resolver or fallback loader; loading failures reject the returned promise unchanged.
 
 </details>
 
@@ -543,22 +578,50 @@ application/octet-stream
 - **Bun/Deno**: Limited testing, may have compatibility issues  
 - **Blob Support**: Node.js requires v15.7.0+ for full Blob support
 - **Download Timeout**: Browser downloads have a 30-second timeout limit
+- **Runtime Module Loading**: Browser and worker imports require network access to jsDelivr and a compatible Content Security Policy
 
 ## 🛣️ Roadmap
 
 - [x] File object support in browsers (drag & drop, input files) ✅ **v0.0.10**
 - [x] Enhanced type inference system ✅ **v0.0.10**
 - [x] Detailed metadata support with `useDetails` option ✅ **v0.0.10**
-- [ ] Stream-based operations for large files (planned for v0.2.x)
+- [x] Environment-aware runtime ESM loading ✅ **v0.5.0**
+- [x] Real-browser tests with Vitest Browser Mode and Playwright ✅ **v0.5.0**
+- [ ] Stream-based operations for large files
 - [ ] Enhanced Bun and Deno compatibility
 - [ ] Directory operations (list, create, remove)
 - [ ] Compression/decompression utilities
 - [ ] Progress callbacks for large operations
 - [ ] Custom MIME type override options
 
+> ## 🧪 Development & Testing
+
+Install dependencies before running tests:
+
+```sh
+yarn install --frozen-lockfile
+yarn test --run
+node smoke.test.mjs
+```
+
+Run the browser suites in a real headless Chromium instance:
+
+```sh
+yarn test:browser:install
+yarn test:browser
+```
+
+On Linux CI hosts, install Chromium together with its system dependencies:
+
+```sh
+yarn playwright install --with-deps chromium
+```
+
+The CI workflow validates Node.js 20, 22, and 24, runs Node.js 22 on Linux, macOS, and Windows, and treats the Chromium suite as a required check.
+
 > ## 🤝 Contributing
 
-Contributions are welcome! Please check our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome. Please [open an issue](https://github.com/jeffy-g/universal-fs/issues) before proposing a substantial behavioral or API change.
 
 > ## 📄 License
 
@@ -566,4 +629,4 @@ MIT © [jeffy-g](https://github.com/jeffy-g)
 
 ---
 
-> **Need help?** Check out our [examples](examples/) or [open an issue](https://github.com/jeffy-g/universal-fs/issues).
+> **Need help?** Check the API reference above or [open an issue](https://github.com/jeffy-g/universal-fs/issues).
